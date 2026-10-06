@@ -1,0 +1,14 @@
+- name: Install and enable Nginx on Pathnex hosts
+hosts: all
+become: yes
+taskes:
+- name: Install Nginx
+yum:
+name: nginx
+state: present
+
+- name: Enable nginx
+service:
+name: nginx
+state: started
+enabled: yes
