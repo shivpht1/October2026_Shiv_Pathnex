@@ -1,0 +1,20 @@
+- name: Setup Nginx with Custom Config
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install Nginx
+      yum:
+        name: nginx
+        state: present
+
+    - name: Copy custom nginx.conf
+      copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+
+    - name: Start Nginx service
+      service:
+        name: nginx
+        state: started
+        enabled: yes
