@@ -1,0 +1,9 @@
+
+stages:
+  - deploy
+
+deploy-to-kubernetes:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl apply -f coding-practice/Day09/kubernetes/deployment-hpa.yaml
