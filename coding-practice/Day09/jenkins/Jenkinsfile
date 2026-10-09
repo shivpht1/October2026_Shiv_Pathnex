@@ -1,0 +1,18 @@
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh 'kubectl apply -f coding-practice/Day09/kubernetes/deployment-hpa.yaml'
+            }
+        }
+    }
+}
