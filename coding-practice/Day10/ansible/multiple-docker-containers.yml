@@ -1,0 +1,32 @@
+
+---
+- name: Setup Docker Containers for Multiple Apps
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Pull Web App Image
+      community.docker.docker_image:
+        name: my-web-app
+        source: pull
+
+    - name: Pull Database App Image
+      community.docker.docker_image:
+        name: my-database-app
+        source: pull
+
+    - name: Run Web App Container
+      community.docker.docker_container:
+        name: web-app
+        image: my-web-app
+        state: started
+        published_ports:
+          - "8080:80"
+
+    - name: Run Database App Container
+      community.docker.docker_container:
+        name: database-app
+        image: my-database-app
+        state: started
+        published_ports:
+          - "3306:3306"
