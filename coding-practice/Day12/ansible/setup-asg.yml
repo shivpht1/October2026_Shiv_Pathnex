@@ -1,0 +1,22 @@
+
+---
+- name: Setup AWS Auto Scaling Group
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Create Auto Scaling Group
+      amazon.aws.autoscaling_group:
+        name: pathnex-asg
+        region: us-east-1
+        launch_template:
+          launch_template_name: pathnex-launch-template
+          version: "1"
+        min_size: 1
+        max_size: 3
+        desired_capacity: 2
+        vpc_zone_identifier:
+          - subnet-REPLACE_WITH_VALID_SUBNET_ID
+        health_check_type: EC2
+        state: present
