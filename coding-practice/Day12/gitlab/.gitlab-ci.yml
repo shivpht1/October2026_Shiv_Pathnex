@@ -1,0 +1,22 @@
+
+stages:
+  - build_test
+  - deploy
+
+build:
+  stage: build_test
+  script:
+    - echo "Building the application..."
+    - docker build -t pathnex-web-app .
+
+test:
+  stage: build_test
+  script:
+    - echo "Running application tests..."
+    - docker run --rm pathnex-web-app npm test
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying the application..."
+    - kubectl apply -f coding-practice/Day12/kubernetes/hpa-deployment.yaml
