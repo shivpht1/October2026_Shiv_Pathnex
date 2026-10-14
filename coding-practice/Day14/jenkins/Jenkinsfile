@@ -1,0 +1,46 @@
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building Docker image...'
+                script {
+                    docker.build('pathnex-web-app')
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running application tests...'
+                sh 'docker run --rm pathnex-web-app echo "Container test successful"'
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                echo 'Deploying Kubernetes manifests...'
+                sh 'kubectl apply -f coding-practice/Day14/kubernetes/ingress.yaml'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check the Jenkins console logs.'
+        }
+    }
+}
+

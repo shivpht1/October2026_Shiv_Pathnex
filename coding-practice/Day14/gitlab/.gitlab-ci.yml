@@ -1,0 +1,30 @@
+
+stages:
+  - build
+  - test
+  - push
+  - deploy
+
+variables:
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE/pathnex-web-app:$CI_COMMIT_SHORT_SHA"
+
+build:
+  stage: build
+  script:
+    - docker build -t "$IMAGE_NAME" -f coding-practice/Day14/docker/Dockerfile coding-practice/Day14/docker
+
+test:
+  stage: test
+  script:
+    - docker run --rm "$IMAGE_NAME" echo "Container test successful"
+
+push:
+  stage: push
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+    - docker push "$IMAGE_NAME"
+
+deploy:
+  stage: deploy
+  script:
+    - kubectl apply -f coding-practice/Day14/kubernetes/ingress.yaml
