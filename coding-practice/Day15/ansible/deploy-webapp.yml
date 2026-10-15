@@ -1,0 +1,23 @@
+---
+- name: Deploy Web Application to Multiple Hosts
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Copy web application files
+      ansible.builtin.copy:
+        src: /path/to/web/app/
+        dest: /var/www/html/
+        owner: root
+        group: root
+
+    - name: Install Apache
+      ansible.builtin.package:
+        name: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
+        state: present
+
+    - name: Start and enable web server
+      ansible.builtin.service:
+        name: "{{ 'apache2' if ansible_os_family == 'Debian' else 'httpd' }}"
+        state: started
+        enabled: yes

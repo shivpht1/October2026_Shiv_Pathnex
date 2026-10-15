@@ -1,0 +1,53 @@
+
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'pathnex-web-app'
+        DEPLOY_ENV = 'dev'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building the application Docker image...'
+                sh 'docker build -t pathnex-web-app:latest .'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running application tests...'
+                sh 'docker run --rm pathnex-web-app:latest echo "Container test successful"'
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    if (env.DEPLOY_ENV == 'production') {
+                        sh 'kubectl apply -f kubernetes/prod-deployment.yaml'
+                    } else {
+                        sh 'kubectl apply -f kubernetes/dev-deployment.yaml'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check the Jenkins console logs.'
+        }
+    }
+}
