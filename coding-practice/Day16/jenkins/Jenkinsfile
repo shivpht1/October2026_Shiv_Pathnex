@@ -1,0 +1,56 @@
+
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            name: 'TARGET_CLUSTER',
+            choices: ['us-east', 'us-west'],
+            description: 'Select the Kubernetes cluster'
+        )
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building Docker image...'
+                sh 'docker build -t pathnex-web-app:latest .'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running container smoke test...'
+                sh 'docker run --rm pathnex-web-app:latest echo "Container test successful"'
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    if (params.TARGET_CLUSTER == 'us-east') {
+                        sh 'kubectl --context=us-east apply -f coding-practice/Day16/kubernetes/deployment.yaml'
+                    } else {
+                        sh 'kubectl --context=us-west apply -f coding-practice/Day16/kubernetes/deployment.yaml'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Multi-cluster deployment completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check the Jenkins console output.'
+        }
+    }
+}
