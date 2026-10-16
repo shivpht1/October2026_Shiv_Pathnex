@@ -1,0 +1,22 @@
+
+---
+- name: Create EC2 instances in multiple AWS regions
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    aws_regions:
+      - us-east-1
+      - us-west-1
+
+  tasks:
+    - name: Launch EC2 instance in each region
+      amazon.aws.ec2_instance:
+        name: "pathnex-ec2-{{ item }}"
+        region: "{{ item }}"
+        instance_type: t2.micro
+        image_id: "{{ ec2_ami_id }}"
+        state: running
+        wait: true
+      loop: "{{ aws_regions }}"
