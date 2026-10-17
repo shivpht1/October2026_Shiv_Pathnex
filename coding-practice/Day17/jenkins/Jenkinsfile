@@ -1,0 +1,48 @@
+
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'pathnex-web-app'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building Docker image...'
+                sh 'docker build -t pathnex-web-app:${BUILD_NUMBER} -f coding-practice/Day17/docker/Dockerfile coding-practice/Day17/docker'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Testing Docker image...'
+                sh 'docker run --rm pathnex-web-app:${BUILD_NUMBER} --version'
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh 'kubectl apply -f coding-practice/Day17/kubernetes/self-healing-deployment.yaml'
+                sh 'kubectl rollout status deployment/pathnex-web-app --timeout=120s'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build, test, and deployment completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check the Jenkins console logs.'
+        }
+    }
+}

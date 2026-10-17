@@ -1,0 +1,39 @@
+
+stages:
+  - build
+  - test
+  - push
+  - deploy
+
+variables:
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE/pathnex-web-app:$CI_COMMIT_SHORT_SHA"
+
+build:
+  stage: build
+  script:
+    - docker build -t "$IMAGE_NAME" -f coding-practice/Day17/docker/Dockerfile coding-practice/Day17/docker
+
+test:
+  stage: test
+  script:
+    - docker run --rm "$IMAGE_NAME" --version
+
+push:
+  stage: push
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+    - docker push "$IMAGE_NAME"
+
+deploy_aws:
+  stage: deploy
+  script:
+    - kubectl --context=aws-cluster apply -f coding-practice/Day17/kubernetes/self-healing-deployment.yaml
+  rules:
+    - if: '$DEPLOY_TARGET == "aws"'
+
+deploy_azure:
+  stage: deploy
+  script:
+    - kubectl --context=azure-cluster apply -f coding-practice/Day17/kubernetes/self-healing-deployment.yaml
+  rules:
+    - if: '$DEPLOY_TARGET == "azure"'
