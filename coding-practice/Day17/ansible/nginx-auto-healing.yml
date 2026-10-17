@@ -1,0 +1,39 @@
+
+---
+- name: Configure Nginx Auto-healing
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.package:
+        name: nginx
+        state: present
+
+    - name: Create systemd override directory
+      ansible.builtin.file:
+        path: /etc/systemd/system/nginx.service.d
+        state: directory
+        mode: "0755"
+
+    - name: Configure automatic restart on failure
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/nginx.service.d/override.conf
+        content: |
+          [Service]
+          Restart=on-failure
+          RestartSec=5
+      notify: Reload systemd and restart Nginx
+
+    - name: Ensure Nginx is enabled and running
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Reload systemd and restart Nginx
+      ansible.builtin.systemd:
+        daemon_reload: yes
+        name: nginx
+        state: restarted
