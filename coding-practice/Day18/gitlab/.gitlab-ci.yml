@@ -1,0 +1,50 @@
+
+cat > coding-practice/Day18/gitlab/.gitlab-ci.yml <<'EOF'
+stages:
+  - build
+  - push
+  - deploy
+
+variables:
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE/pathnex-web-app"
+  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+  DOCKER_TLS_CERTDIR: "/certs"
+
+build:
+  stage: build
+  image: docker:27-cli
+  services:
+    - name: docker:27-dind
+      alias: docker
+  script:
+    - docker info
+    - docker build -t "$IMAGE_NAME:$IMAGE_TAG" .
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+
+push:
+  stage: push
+  image: docker:27-cli
+  services:
+    - name: docker:27-dind
+      alias: docker
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" --password-stdin
+    - docker build -t "$IMAGE_NAME:$IMAGE_TAG" .
+    - docker push "$IMAGE_NAME:$IMAGE_TAG"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+deploy_blue_green:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl apply --dry-run=client -f kubernetes/blue-deployment.yaml
+    - kubectl apply --dry-run=client -f kubernetes/green-deployment.yaml
+    - kubectl apply -f kubernetes/blue-deployment.yaml
+    - kubectl apply -f kubernetes/green-deployment.yaml
+    - kubectl rollout status deployment/blue-deployment --timeout=120s
+    - kubectl rollout status deployment/green-deployment --timeout=120s
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+EOF

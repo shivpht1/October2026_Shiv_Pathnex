@@ -1,0 +1,64 @@
+
+cat > coding-practice/Day18/jenkins/Jenkinsfile <<'EOF'
+pipeline {
+    agent any
+
+    environment {
+        APP_NAME = 'pathnex-web-app'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out application source code...'
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Docker image...'
+                sh 'docker build -t ${APP_NAME}:${IMAGE_TAG} .'
+            }
+        }
+
+        stage('Validate Kubernetes Manifests') {
+            steps {
+                echo 'Validating Blue-Green deployment manifests...'
+                sh 'kubectl apply --dry-run=client -f kubernetes/blue-deployment.yaml'
+                sh 'kubectl apply --dry-run=client -f kubernetes/green-deployment.yaml'
+            }
+        }
+
+        stage('Deploy Blue-Green') {
+            steps {
+                echo 'Applying Blue and Green deployments...'
+                sh 'kubectl apply -f kubernetes/blue-deployment.yaml'
+                sh 'kubectl apply -f kubernetes/green-deployment.yaml'
+            }
+        }
+
+        stage('Verify Deployments') {
+            steps {
+                sh 'kubectl rollout status deployment/blue-deployment --timeout=120s'
+                sh 'kubectl rollout status deployment/green-deployment --timeout=120s'
+                sh 'kubectl get deployments'
+                echo 'Deployment verification completed.'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Blue-Green deployment pipeline completed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed. Check the logs and troubleshoot the issue.'
+        }
+        always {
+            echo 'Pipeline execution finished.'
+        }
+    }
+}
+EOF
