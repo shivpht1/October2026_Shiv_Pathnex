@@ -1,0 +1,54 @@
+
+cat > coding-practice/Day19/kubernetes/fluentd-logging.yaml <<'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fluentd
+  labels:
+    app: fluentd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fluentd
+  template:
+    metadata:
+      labels:
+        app: fluentd
+    spec:
+      containers:
+        - name: fluentd
+          image: fluent/fluentd:v1.16-debian-1
+          ports:
+            - name: forward
+              containerPort: 24224
+              protocol: TCP
+            - name: forward-udp
+              containerPort: 24224
+              protocol: UDP
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fluentd
+spec:
+  selector:
+    app: fluentd
+  ports:
+    - name: forward
+      protocol: TCP
+      port: 24224
+      targetPort: 24224
+    - name: forward-udp
+      protocol: UDP
+      port: 24224
+      targetPort: 24224
+  type: ClusterIP
+EOF
