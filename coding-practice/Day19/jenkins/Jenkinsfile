@@ -1,0 +1,61 @@
+
+cat > coding-practice/Day19/jenkins/Jenkinsfile <<'EOF'
+pipeline {
+    agent any
+
+    environment {
+        APP_NAME = 'pathnex-web-app'
+        IMAGE_TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                echo 'Source code checkout completed.'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Flask application image...'
+                dir('coding-practice/Day19/docker') {
+                    sh 'docker build -t ${APP_NAME}:${IMAGE_TAG} .'
+                }
+            }
+        }
+
+        stage('Validate Kubernetes Manifest') {
+            steps {
+                sh 'kubectl apply --dry-run=client -f coding-practice/Day19/kubernetes/fluentd-logging.yaml'
+            }
+        }
+
+        stage('Deploy Logging') {
+            steps {
+                sh 'kubectl apply -f coding-practice/Day19/kubernetes/fluentd-logging.yaml'
+            }
+        }
+
+        stage('Monitor Deployment') {
+            steps {
+                sh 'kubectl rollout status deployment/fluentd --timeout=120s'
+                sh 'kubectl get pods'
+                sh 'kubectl get services'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Fluentd deployment and monitoring checks completed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed. Check Jenkins logs and Kubernetes events.'
+        }
+        always {
+            echo 'Pipeline execution finished.'
+        }
+    }
+}
+EOF
