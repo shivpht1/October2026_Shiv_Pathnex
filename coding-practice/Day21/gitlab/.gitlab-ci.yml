@@ -1,0 +1,46 @@
+cat > coding-practice/Day21/gitlab/.gitlab-ci.yml <<'EOF'
+stages:
+  - backup
+  - verify
+  - restore
+
+variables:
+  BACKUP_DIR: "backup-artifacts"
+  BACKUP_FILE: "deployment-backup.tar.gz"
+  RESTORE_DIR: "restore-test"
+
+create_backup:
+  stage: backup
+  image: alpine:3.22
+  script:
+    - mkdir -p "$BACKUP_DIR"
+    - tar -czf "$BACKUP_DIR/$BACKUP_FILE" coding-practice/Day21/kubernetes/statefulset-backup.yaml
+    - test -s "$BACKUP_DIR/$BACKUP_FILE"
+    - echo "Backup created successfully."
+  artifacts:
+    paths:
+      - backup-artifacts/deployment-backup.tar.gz
+    expire_in: 7 days
+
+verify_backup:
+  stage: verify
+  image: alpine:3.22
+  needs:
+    - job: create_backup
+      artifacts: true
+  script:
+    - tar -tzf "$BACKUP_DIR/$BACKUP_FILE"
+    - echo "Backup archive verified successfully."
+
+restore_backup:
+  stage: restore
+  image: alpine:3.22
+  needs:
+    - job: create_backup
+      artifacts: true
+  script:
+    - mkdir -p "$RESTORE_DIR"
+    - tar -xzf "$BACKUP_DIR/$BACKUP_FILE" -C "$RESTORE_DIR"
+    - test -f "$RESTORE_DIR/coding-practice/Day21/kubernetes/statefulset-backup.yaml"
+    - echo "Restore test completed successfully."
+EOF
