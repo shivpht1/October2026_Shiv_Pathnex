@@ -1,0 +1,37 @@
+
+cat > coding-practice/Day20/ansible/firewall-iptables.yml <<'EOF'
+---
+- name: Configure Firewall with iptables
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Allow established connections
+      ansible.builtin.iptables:
+        chain: INPUT
+        ctstate:
+          - ESTABLISHED
+          - RELATED
+        jump: ACCEPT
+
+    - name: Allow loopback traffic
+      ansible.builtin.iptables:
+        chain: INPUT
+        in_interface: lo
+        jump: ACCEPT
+
+    - name: Allow SSH traffic
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "22"
+        source: "{{ trusted_ssh_cidr | default('192.0.2.10/32') }}"
+        jump: ACCEPT
+
+    - name: Allow HTTP traffic
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "80"
+        jump: ACCEPT
+EOF
