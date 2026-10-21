@@ -1,0 +1,33 @@
+cat > coding-practice/Day21/ansible/backup-restore.yml <<'EOF'
+---
+- name: Backup and Restore Files
+  hosts: all
+  become: true
+
+  vars:
+    backup_dir: /tmp/ansible-backups
+    backup_file: etc-backup.tar.gz
+
+  tasks:
+    - name: Create backup directory
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: "0750"
+
+    - name: Create backup of /etc
+      ansible.builtin.archive:
+        path: /etc
+        dest: "{{ backup_dir }}/{{ backup_file }}"
+        format: gz
+
+    - name: Verify backup exists
+      ansible.builtin.stat:
+        path: "{{ backup_dir }}/{{ backup_file }}"
+      register: backup_status
+
+    - name: Display backup status
+      ansible.builtin.debug:
+        msg: "Backup created successfully"
+      when: backup_status.stat.exists
+EOF

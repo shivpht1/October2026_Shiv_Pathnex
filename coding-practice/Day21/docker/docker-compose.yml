@@ -1,0 +1,14 @@
+cat > coding-practice/Day21/docker/docker-compose.yml <<'EOF'
+services:
+  web:
+    image: nginx:stable
+    container_name: pathnex-nginx
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    volumes:
+      - web-content:/usr/share/nginx/html:ro
+
+volumes:
+  web-content:
+EOF

@@ -1,0 +1,54 @@
+cat > coding-practice/Day21/kubernetes/statefulset-backup.yaml <<'EOF'
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pathnex-recovery
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pathnex
+  namespace: pathnex-recovery
+spec:
+  clusterIP: None
+  selector:
+    app: pathnex
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pathnex-statefulset
+  namespace: pathnex-recovery
+spec:
+  serviceName: pathnex
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pathnex
+  template:
+    metadata:
+      labels:
+        app: pathnex
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: web-content
+              mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+    - metadata:
+        name: web-content
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+EOF
