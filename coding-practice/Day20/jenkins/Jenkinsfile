@@ -1,0 +1,53 @@
+
+cat > coding-practice/Day20/jenkins/Jenkinsfile <<'EOF'
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'pathnex-web-app'
+        IMAGE_TAG  = "${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                echo 'Source code checkout completed.'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                dir('coding-practice/Day20/docker') {
+                    sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
+                }
+            }
+        }
+
+        stage('Login and Push Image') {
+            steps {
+                script {
+                    docker.withRegistry(
+                        'https://index.docker.io/v1/',
+                        'docker-credentials'
+                    ) {
+                        docker.image("${IMAGE_NAME}:${IMAGE_TAG}").push()
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Docker image built and pushed successfully.'
+        }
+        failure {
+            echo 'Pipeline failed. Check the Jenkins console logs.'
+        }
+        always {
+            echo 'Pipeline execution finished.'
+        }
+    }
+}
+EOF
