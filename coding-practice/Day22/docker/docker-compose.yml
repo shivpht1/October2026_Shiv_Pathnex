@@ -1,0 +1,32 @@
+cat > coding-practice/Day22/docker/docker-compose.yml <<'EOF'
+services:
+  db:
+    image: mysql:8.0
+    container_name: pathnex-db
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD first}"
+      MYSQL_DATABASE: pathnex
+    volumes:
+      - mysql-data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - pathnex-network
+
+  web:
+    image: nginx:stable
+    container_name: pathnex-web
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    networks:
+      - pathnex-network
+    depends_on:
+      - db
+
+volumes:
+  mysql-data:
+
+networks:
+  pathnex-network:
+    driver: bridge
+EOF

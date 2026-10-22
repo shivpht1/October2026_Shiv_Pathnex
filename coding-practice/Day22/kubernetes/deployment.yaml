@@ -1,0 +1,46 @@
+cat > coding-practice/Day22/kubernetes/deployment.yaml <<'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pathnex-deployment
+  labels:
+    app: pathnex-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: pathnex-app
+  template:
+    metadata:
+      labels:
+        app: pathnex-app
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pathnex-service
+  labels:
+    app: pathnex-app
+spec:
+  type: ClusterIP
+  selector:
+    app: pathnex-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+EOF
