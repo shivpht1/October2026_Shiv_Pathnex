@@ -1,0 +1,61 @@
+cat > coding-practice/Day22/jenkins/Jenkinsfile <<'EOF'
+pipeline {
+    agent any
+
+    stages {
+        stage('Validate Kubernetes Manifest') {
+            steps {
+                sh '''
+                    test -f coding-practice/Day22/kubernetes/deployment.yaml
+                    kubectl --context=us-east-cluster \
+                      apply --dry-run=client \
+                      -f coding-practice/Day22/kubernetes/deployment.yaml
+                    kubectl --context=us-west-cluster \
+                      apply --dry-run=client \
+                      -f coding-practice/Day22/kubernetes/deployment.yaml
+                '''
+            }
+        }
+
+        stage('Deploy to US East Cluster') {
+            steps {
+                sh '''
+                    kubectl --context=us-east-cluster \
+                      apply -f coding-practice/Day22/kubernetes/deployment.yaml
+
+                    kubectl --context=us-east-cluster \
+                      rollout status deployment/pathnex-deployment \
+                      --timeout=180s
+                '''
+            }
+        }
+
+        stage('Deploy to US West Cluster') {
+            steps {
+                sh '''
+                    kubectl --context=us-west-cluster \
+                      apply -f coding-practice/Day22/kubernetes/deployment.yaml
+
+                    kubectl --context=us-west-cluster \
+                      rollout status deployment/pathnex-deployment \
+                      --timeout=180s
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Nginx deployment verified on both Kubernetes clusters.'
+        }
+
+        failure {
+            echo 'Deployment failed. Check the Jenkins console logs.'
+        }
+
+        always {
+            echo 'Multi-cluster deployment pipeline finished.'
+        }
+    }
+}
+EOF

@@ -1,0 +1,57 @@
+cat > coding-practice/Day22/gitlab/.gitlab-ci.yml <<'EOF'
+stages:
+  - validate
+  - deploy
+  - verify
+
+variables:
+  KUBECONFIG: "$CI_PROJECT_DIR/.kube/config"
+
+validate_manifest:
+  stage: validate
+  image: bitnami/kubectl:latest
+  script:
+    - test -f coding-practice/Day22/kubernetes/deployment.yaml
+    - kubectl --context=us-east-cluster apply --dry-run=client -f coding-practice/Day22/kubernetes/deployment.yaml
+    - kubectl --context=us-west-cluster apply --dry-run=client -f coding-practice/Day22/kubernetes/deployment.yaml
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+
+deploy_us_east:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl --context=us-east-cluster apply -f coding-practice/Day22/kubernetes/deployment.yaml
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+verify_us_east:
+  stage: verify
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl --context=us-east-cluster rollout status deployment/pathnex-deployment --timeout=180s
+  needs:
+    - deploy_us_east
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+deploy_us_west:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl --context=us-west-cluster apply -f coding-practice/Day22/kubernetes/deployment.yaml
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  needs:
+    - verify_us_east
+
+verify_us_west:
+  stage: verify
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl --context=us-west-cluster rollout status deployment/pathnex-deployment --timeout=180s
+  needs:
+    - deploy_us_west
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+EOF
