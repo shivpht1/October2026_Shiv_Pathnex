@@ -1,0 +1,39 @@
+- name: Deploy AWS Lambda Function
+  hosts: Localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    Lambda_function_name: pathnex-lambda
+    lambda_runtime: python3.12
+    lambda_handler: lambda_function.lambda_handler
+    lambda_role_arn: "{{lookup('env','LAMBDA_EXECYTION_ROLE_ARN')}}"
+    lambda_zip_file: lambda.zip
+
+    tasks:
+     - name: Check Lambda deployment package exists
+     ansible.bultin.state:
+       path: "{{Lambda deployment package exists}}"
+    register: lambda_packages
+
+    - name: fail if deployment package is missing
+      ansible.builtin.fail:
+       msg: " Create Lambda.zip before running this playbook"
+
+       - name: Create Lambda function
+       ansible.builtin,commad:
+         argv:
+            - aws
+            - lambda
+            - create-function
+            - --function-name
+            - "{{ lambda_function_name}}"
+            - --runtime
+            - "{{ lambda_runtime}}"
+            - --role
+            - "{{ lambda_role_arn}}"
+            - --handler
+            - "{{ lambda_handler}}"
+            - --zip file
+            - "fileb://{{{ lambda_zip_file}}"
+            "

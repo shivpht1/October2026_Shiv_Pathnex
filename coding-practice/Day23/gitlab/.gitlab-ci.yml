@@ -1,0 +1,50 @@
+cat > coding-practice/Day23/gitlab/.gitlab-ci.yml <<'EOF'
+stages:
+  - build
+  - validate
+  - deploy
+
+variables:
+  LAMBDA_FUNCTION: "pathnex-lambda"
+  PACKAGE_FILE: "lambda.zip"
+
+build_lambda:
+  stage: build
+  image: python:3.12-alpine
+  before_script:
+    - apk add --no-cache zip
+  script:
+    - test -d lambda
+    - cd lambda
+    - zip -r "../${PACKAGE_FILE}" .
+    - cd ..
+    - test -s "${PACKAGE_FILE}"
+  artifacts:
+    paths:
+      - lambda.zip
+    expire_in: 1 day
+
+validate_package:
+  stage: validate
+  image: python:3.12-alpine
+  needs:
+    - job: build_lambda
+      artifacts: true
+  script:
+    - python -c "import zipfile; z=zipfile.ZipFile('lambda.zip'); assert z.testzip() is None; print('ZIP package is valid')"
+
+deploy_lambda:
+  stage: deploy
+  image: amazon/aws-cli:2
+  needs:
+    - job: build_lambda
+      artifacts: true
+    - job: validate_package
+  script:
+    - test -s lambda.zip
+    - aws lambda update-function-code --function-name "$LAMBDA_FUNCTION" --zip-file fileb://lambda.zip
+    - aws lambda wait function-updated --function-name "$LAMBDA_FUNCTION"
+    - aws lambda get-function-configuration --function-name "$LAMBDA_FUNCTION"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+EOF

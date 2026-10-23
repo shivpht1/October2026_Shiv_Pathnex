@@ -1,0 +1,77 @@
+cat > coding-practice/Day23/jenkins/Jenkinsfile <<'EOF'
+pipeline {
+    agent any
+
+    environment {
+        LAMBDA_FUNCTION = 'pathnex-lambda'
+        PACKAGE_FILE = 'lambda.zip'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Lambda Package') {
+            steps {
+                sh '''
+                    test -d lambda
+                    cd lambda
+                    zip -r "../${PACKAGE_FILE}" .
+                    cd ..
+                '''
+            }
+        }
+
+        stage('Validate Package') {
+            steps {
+                sh '''
+                    test -s "${PACKAGE_FILE}"
+                    unzip -t "${PACKAGE_FILE}"
+                    echo "Lambda package validation successful."
+                '''
+            }
+        }
+
+        stage('Deploy to AWS Lambda') {
+            steps {
+                sh '''
+                    aws lambda update-function-code \
+                      --function-name "${LAMBDA_FUNCTION}" \
+                      --zip-file "fileb://${PACKAGE_FILE}"
+                '''
+            }
+        }
+
+        stage('Wait for Deployment') {
+            steps {
+                sh '''
+                    aws lambda wait function-updated \
+                      --function-name "${LAMBDA_FUNCTION}"
+
+                    aws lambda get-function-configuration \
+                      --function-name "${LAMBDA_FUNCTION}" \
+                      --query '[FunctionName,LastUpdateStatus,Runtime]' \
+                      --output table
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Lambda package deployed successfully.'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check the Jenkins console logs.'
+        }
+
+        always {
+            echo 'Serverless deployment pipeline finished.'
+        }
+    }
+}
+EOF
