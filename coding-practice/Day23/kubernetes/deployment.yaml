@@ -1,0 +1,31 @@
+cat > coding-practice/Day23/kubernetes/microservice-chart/templates/deployment.yaml <<'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pathnex-microservice
+  labels:
+    app: pathnex-microservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pathnex-microservice
+  template:
+    metadata:
+      labels:
+        app: pathnex-microservice
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+EOF

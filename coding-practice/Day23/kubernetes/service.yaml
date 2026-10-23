@@ -1,0 +1,14 @@
+cat > coding-practice/Day23/kubernetes/microservice-chart/templates/service.yaml <<'EOF'
+apiVersion: v1
+kind: Service
+metadata:
+  name: pathnex-microservice
+spec:
+  type: ClusterIP
+  selector:
+    app: pathnex-microservice
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+EOF

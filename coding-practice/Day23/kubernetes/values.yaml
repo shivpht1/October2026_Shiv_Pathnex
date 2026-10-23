@@ -1,0 +1,20 @@
+cat > coding-practice/Day23/kubernetes/microservice-chart/values.yaml <<'EOF'
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: stable
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+EOF
