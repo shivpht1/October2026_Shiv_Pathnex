@@ -1,0 +1,22 @@
+cat > coding-practice/Day24/ansible/deploy-helm.yml <<'EOF'
+---
+- name: Deploy microservices with Helm
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Check Helm installation
+      command: helm version --short
+      register: helm_version
+      changed_when: false
+
+    - name: Display Helm version
+      debug:
+        msg: "Installed Helm version: {{ helm_version.stdout }}"
+
+    - name: Deploy microservices with Helm
+      command: helm upgrade --install pathnex-app ./microservice-chart
+      register: helm_deploy
+      changed_when: "'has been upgraded' in helm_deploy.stdout or 'has been installed' in helm_deploy.stdout"
+EOF
