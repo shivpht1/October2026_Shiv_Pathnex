@@ -1,0 +1,52 @@
+cat > coding-practice/Day24/jenkins/Jenkinsfile <<'EOF'
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+    }
+
+    stages {
+        stage('Scale Up') {
+            steps {
+                echo 'Preparing Jenkins agents for the workload...'
+                echo 'Agent scaling logic is simulated in this practice pipeline.'
+            }
+        }
+
+        stage('Validate Configuration') {
+            steps {
+                sh '''
+                    test -f coding-practice/Day24/kubernetes/deployment.yaml
+                    test -f coding-practice/Day24/kubernetes/hpa.yaml
+                    echo "Kubernetes Deployment and HPA files found."
+                '''
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building the application...'
+                echo 'Build stage completed for this practice pipeline.'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deployment stage started.'
+                echo 'In a real pipeline, deploy using Helm or kubectl with configured credentials.'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Day 24 CI/CD pipeline completed successfully.'
+        }
+
+        failure {
+            echo 'Pipeline failed. Please check the console logs.'
+        }
+    }
+}
+EOF
