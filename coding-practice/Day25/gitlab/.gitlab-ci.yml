@@ -1,0 +1,23 @@
+cat > coding-practice/Day25/gitlab/.gitlab-ci.yml <<'EOF'
+stages:
+  - monitor
+  - test
+
+monitor:
+  stage: monitor
+  image: amazon/aws-cli:latest
+  script:
+    - echo "Publishing sample CPU utilization metric to CloudWatch..."
+    - aws cloudwatch put-metric-data --namespace "Pathnex/Monitoring" --metric-name "SampleCPUUtilization" --value 90 --unit Percent
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+
+test:
+  stage: test
+  image: alpine:latest
+  script:
+    - echo "Running monitoring pipeline tests..."
+    - echo "Tests completed successfully."
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+EOF
