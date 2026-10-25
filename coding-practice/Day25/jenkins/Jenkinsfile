@@ -1,0 +1,38 @@
+cat > coding-practice/Day25/jenkins/Jenkinsfile <<'EOF'
+pipeline {
+    agent any
+
+    stages {
+        stage('Monitor') {
+            steps {
+                echo 'Publishing a sample CPU utilization metric to CloudWatch...'
+
+                sh '''
+                    aws cloudwatch put-metric-data \
+                      --namespace "Pathnex/Monitoring" \
+                      --metric-name "SampleCPUUtilization" \
+                      --value 90 \
+                      --unit Percent
+                '''
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running application tests...'
+                sh 'echo "Tests completed for monitoring pipeline practice."'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Monitoring pipeline completed successfully.'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check the console logs.'
+        }
+    }
+}
+EOF

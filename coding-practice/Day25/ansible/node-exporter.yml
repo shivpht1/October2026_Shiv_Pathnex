@@ -1,0 +1,18 @@
+cat > coding-practice/Day25/ansible/node-exporter.yml <<'EOF'
+---
+- name: Setup Prometheus Node Exporter
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install Prometheus Node Exporter
+      ansible.builtin.package:
+        name: prometheus-node-exporter
+        state: present
+
+    - name: Start and enable Node Exporter
+      ansible.builtin.service:
+        name: prometheus-node-exporter
+        state: started
+        enabled: true
+EOF

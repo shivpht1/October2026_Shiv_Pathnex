@@ -1,0 +1,5 @@
+cat > coding-practice/Day25/docker/.dockerignore <<'EOF'
+node_modules
+.git
+temp
+EOF
