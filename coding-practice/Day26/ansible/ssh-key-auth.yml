@@ -1,0 +1,25 @@
+cat > coding-practice/Day26/ansible/ssh-key-auth.yml <<'EOF'
+---
+- name: Configure SSH Key-Based Authentication
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Generate SSH key pair if it does not exist
+      community.crypto.openssh_keypair:
+        path: /home/user/.ssh/id_rsa
+        type: rsa
+        size: 2048
+        owner: user
+        group: user
+        mode: '0600'
+        force: false
+      delegate_to: localhost
+      become: false
+
+    - name: Add public key to authorized_keys
+      ansible.posix.authorized_key:
+        user: user
+        state: present
+        key: "{{ lookup('file', '/home/user/.ssh/id_rsa.pub') }}"
+EOF
