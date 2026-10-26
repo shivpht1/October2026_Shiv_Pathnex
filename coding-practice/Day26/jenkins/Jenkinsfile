@@ -1,0 +1,32 @@
+cat > coding-practice/Day26/jenkins/Jenkinsfile <<'EOF'
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building Docker image...'
+                sh 'docker build -t pathnex-web-app .'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-credentials',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    echo 'AWS credentials loaded securely.'
+                    sh '''
+                        set +x
+                        aws sts get-caller-identity
+                    '''
+                }
+            }
+        }
+    }
+}
+EOF

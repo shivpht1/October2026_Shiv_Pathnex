@@ -1,0 +1,24 @@
+cat > coding-practice/Day26/kubernetes/network-policy.yaml <<'EOF'
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pathnex-web-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: pathnex-web-app
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: pathnex-api
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: pathnex-database
+EOF

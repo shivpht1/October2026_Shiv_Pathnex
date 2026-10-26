@@ -1,0 +1,24 @@
+cat > coding-practice/Day26/gitlab/.gitlab-ci.yml <<'EOF'
+stages:
+  - build
+  - security-check
+
+build:
+  stage: build
+  script:
+    - docker build -t pathnex-web-app .
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+
+aws-security-check:
+  stage: security-check
+  script:
+    - |
+      if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+        echo "AWS credentials are missing. Configure them in GitLab CI/CD Variables."
+        exit 1
+      fi
+    - aws sts get-caller-identity
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+EOF
