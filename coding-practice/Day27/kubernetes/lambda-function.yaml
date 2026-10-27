@@ -1,0 +1,14 @@
+cat > coding-practice/Day27/kubernetes/lambda-function.yaml <<'EOF'
+apiVersion: kubeless.io/v1beta1
+kind: Function
+metadata:
+  name: pathnex-lambda
+  namespace: default
+spec:
+  runtime: nodejs12
+  handler: index.handler
+  function: |
+    module.exports = function(event, context) {
+      return 'Hello World';
+    };
+EOF

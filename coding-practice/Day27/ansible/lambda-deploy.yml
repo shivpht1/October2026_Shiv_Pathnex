@@ -1,0 +1,31 @@
+cat > coding-practice/Day27/ansible/lambda-deploy.yml <<'EOF'
+---
+- name: Deploy Serverless Lambda Function
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Create Lambda function
+      command:
+        argv:
+          - aws
+          - lambda
+          - create-function
+          - --function-name
+          - pathnex-lambda
+          - --runtime
+          - nodejs22.x
+          - --role
+          - "{{ lambda_role_arn }}"
+          - --handler
+          - index.handler
+          - --zip-file
+          - fileb://lambda.zip
+      register: lambda_result
+      changed_when: true
+
+    - name: Display Lambda deployment result
+      debug:
+        var: lambda_result.stdout
+EOF

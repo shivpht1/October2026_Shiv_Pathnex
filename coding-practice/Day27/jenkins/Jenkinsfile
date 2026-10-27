@@ -1,0 +1,24 @@
+cat > coding-practice/Day27/jenkins/Jenkinsfile <<'EOF'
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building Lambda function package...'
+                sh 'zip -r lambda.zip lambda/'
+            }
+        }
+
+        stage('Deploy to Lambda') {
+            steps {
+                sh '''
+                    aws lambda update-function-code \
+                      --function-name pathnex-lambda \
+                      --zip-file fileb://lambda.zip
+                '''
+            }
+        }
+    }
+}
+EOF
