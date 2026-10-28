@@ -1,0 +1,25 @@
+cat > coding-practice/Day28/ansible/vpc-peering.yml <<'EOF'
+---
+- name: Set Up VPC Peering
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Create VPC peering connection
+      command:
+        argv:
+          - aws
+          - ec2
+          - create-vpc-peering-connection
+          - --vpc-id
+          - "{{ vpc_id }}"
+          - --peer-vpc-id
+          - "{{ peer_vpc_id }}"
+      register: peering_result
+      changed_when: true
+
+    - name: Display peering connection result
+      debug:
+        var: peering_result.stdout
+EOF
