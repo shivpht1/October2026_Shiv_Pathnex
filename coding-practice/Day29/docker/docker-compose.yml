@@ -1,0 +1,29 @@
+cat > coding-practice/Day29/docker/docker-compose.yml <<'EOF'
+services:
+  frontend:
+    image: nginx:stable
+    container_name: pathnex-frontend
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: pathnex-backend
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+  database:
+    image: mysql:8
+    container_name: pathnex-mysql
+    environment:
+      MYSQL_DATABASE: pathnex
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in your environment}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+EOF
