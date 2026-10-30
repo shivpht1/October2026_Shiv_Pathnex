@@ -1,0 +1,24 @@
+cat > coding-practice/Day30/gitlab/.gitlab-ci.yml <<'EOF'
+stages:
+  - validate
+  - deploy
+
+helm-lint:
+  stage: validate
+  image:
+    name: alpine/helm:3.17.3
+    entrypoint: [""]
+  script:
+    - helm lint coding-practice/Day30/helm/pathnex
+
+deploy:
+  stage: deploy
+  image:
+    name: alpine/helm:3.17.3
+    entrypoint: [""]
+  script:
+    - helm upgrade --install pathnex coding-practice/Day30/helm/pathnex --namespace pathnex --create-namespace --wait
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+EOF

@@ -1,0 +1,16 @@
+cat > coding-practice/Day30/monitoring/prometheus-config.yaml <<'EOF'
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+
+  - job_name: pathnex-app
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - pathnex-service:80
+EOF

@@ -1,0 +1,49 @@
+cat > coding-practice/Day30/jenkins/Jenkinsfile <<'EOF'
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Validate Helm') {
+            steps {
+                dir('coding-practice/Day30') {
+                    sh 'helm lint helm/pathnex'
+                }
+            }
+        }
+
+        stage('Validate Kubernetes') {
+            steps {
+                dir('coding-practice/Day30') {
+                    sh 'kubectl apply --dry-run=client -f kubernetes/deployment.yaml'
+                }
+            }
+        }
+
+        stage('Deploy with Helm') {
+            steps {
+                dir('coding-practice/Day30') {
+                    sh '''
+                        helm upgrade --install pathnex helm/pathnex \
+                          --namespace pathnex \
+                          --create-namespace \
+                          --wait \
+                          --timeout 5m
+                    '''
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh 'kubectl rollout status deployment/pathnex-app -n pathnex --timeout=180s'
+            }
+        }
+    }
+}
+EOF

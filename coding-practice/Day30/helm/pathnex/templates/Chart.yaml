@@ -1,0 +1,8 @@
+cat > coding-practice/Day30/helm/pathnex/Chart.yaml <<'EOF'
+apiVersion: v2
+name: pathnex
+description: Pathnex final DevOps project
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+EOF
