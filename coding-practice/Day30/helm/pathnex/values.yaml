@@ -1,0 +1,19 @@
+cat > coding-practice/Day30/helm/pathnex/values.yaml <<'EOF'
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: stable
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 128Mi
+EOF
